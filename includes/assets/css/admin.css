@@ -9,6 +9,13 @@ SETTINGS PAGE
 /* 
 CUSTOM STATUS PAGE
 */
-.statuses_dom{
+.statuses_dom,
+.announcement_dom{
 	display:none;
+}
+
+.announcement_list textarea{
+    width: 320px;
+    clear: both;
+    display: block;
 }

@@ -65,6 +65,7 @@ class BBPSE_Settings{
 		$tabs = array( 
 	    		'general'  => _x('General','Tab name in Settings','bbpse'), 
 	    		'statuses' => _x('Statuses','Tab name in Settings','bbpse'), 
+	    		'announcements' => _x('Announcements','Tab name in Settings','bbpse'), 
     		);
 	    echo '<div id="icon-themes" class="icon32"><br></div>';
 	    echo '<h2 class="nav nav-tab-wrapper">';
@@ -75,6 +76,7 @@ class BBPSE_Settings{
 	    }
 	    echo '</h2>';
 	    if(isset($_POST['save'])){
+	    	echo 'HAN BHAI';
 	    	$this->save();
 	    }
 	}
@@ -89,7 +91,7 @@ class BBPSE_Settings{
 	function general(){
 		echo '<h3>'.__('General Settings','bbpse').'</h3>';
 	
-		$settings= pply_filters('bbpse_admin_general', array(
+		$settings= apply_filters('bbpse_admin_general', array(
 				array(
 					'label' => __('Support Staff','bbpse' ),
 					'name' =>'support_staff',
@@ -131,7 +133,22 @@ class BBPSE_Settings{
 				),
 			));
 
-		$this->generate_form('general',$statuses);
+		$this->generate_form('stauses',$statuses);
+	}
+
+	function announcements(){
+		echo '<h3>'.__('Forum Announcements','bbpse').'</h3>';
+	
+		$announcements=apply_filters('bbpse_forum_annoucements',array(
+				array(
+					'label' => __('Manage Forum Announcements','bbpse' ),
+					'name' =>'announcement',
+					'type' => 'announcements',
+					'desc' => __('Define announcements for forums','bbpse')
+				),
+			));
+
+		$this->generate_form('announcements',$announcements);
 	}
 
 	function generate_form($tab,$settings=array()){
@@ -182,6 +199,47 @@ class BBPSE_Settings{
 						}
 					}
 					echo '</ul><div class="statuses_dom">'.$setting['dom'].'</div>';
+					echo '<span>'.$setting['desc'].'</span></td>';
+				break;
+				case 'announcements':
+					$forums_list = new WP_Query(array('post_type'=>'forum','posts_per_page'=>-1));
+					$forums_array = array();
+					if($forums_list->have_posts()){
+						while($forums_list->have_posts()){
+							$forums_list->the_post();
+							$forums_array[get_the_ID()] = get_the_title();
+						}
+					}
+					wp_reset_postdata();
+
+					echo '<th scope="row" class="titledesc">'.$setting['label'].'</th>';
+					echo '<td class="forminp">
+					<a class="button-primary clone_announcements">'._x('Add new announcement','add new in statuses field type','bbpse').' '.$setting['label'].'</a>
+					<ul class="announcement_list">'; 
+					if(!empty($this->settings[$setting['name']]) && !empty($this->settings[$setting['name']]['forum'])){
+
+						foreach($this->settings[$setting['name']]['forum'] as $key=>$val){
+							echo '<li><select name="announcement[forum][]">
+							<option value="all" '.(($val == 'all')?'selected':'').'>'._x('All Forums','all forums option in select','bbpse').'</option>';
+							if(!empty($forums_array)){
+								foreach($forums_array as $fid=>$fname){
+									echo '<option value="'.$fid.'" '.(($val == $fid)?'selected':'').'>'.$fname.'</option>';
+								}
+							}
+					echo '</select><textarea name="announcement[message][]">'.$this->settings[$setting['name']]['message'][$key].'</textarea><a class="remove_link"><span class="dashicons dashicons-no-alt"></span></a>
+					</li>';
+						}
+					}
+					echo '</ul><div class="announcement_dom">
+						<select rel-name="announcement[forum][]">
+							<option value="all">'._x('All Forums','all forums option in select','bbpse').'</option>';
+							if(!empty($forums_array)){
+								foreach($forums_array as $fid=>$fname){
+									echo '<option value="'.$fid.'">'.$fname.'</option>';
+								}
+							}
+					echo '</select><textarea rel-name="announcement[message][]"></textarea><a class="remove_link"><span class="dashicons dashicons-no-alt"></span></a>
+					</div>';
 					echo '<span>'.$setting['desc'].'</span></td>';
 				break;
 				default:
